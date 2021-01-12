@@ -17,7 +17,7 @@ const createUser = async (req, res) => {
     await user.save();
 
     const token = await generateJwt(user.id);
-    res.json({ok: true, body: user, token})
+    res.json({ok: true, user: user, token})
     
   } catch (error) {
     console.log(error);
@@ -29,27 +29,25 @@ const createUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const dbUser = await User.findOne({email});
-    if (!dbUser) {
+    const user = await User.findOne({email});
+    if (!user) {
       return res.status(404).json({ok: false, msg: 'Email not found'});
     }
-    const validPassword = bcrypt.compareSync(password, dbUser.password);
+    const validPassword = bcrypt.compareSync(password, user.password);
     if (!validPassword) {
       return res.status(400).json({
         message: "Please check credentials"
       })
     }
-    const token = await generateJwt(dbUser.id);
-    res.json({ok: true, dbUser, token});
+    const token = await generateJwt(user.id);
+    res.json({ok: true, user, token});
   } catch (error) {
     return res.status(500).json({ok: false, msg: "Something went wrong with the server"});
   }
 }
 
 const renewToken = async (req, res) => {
-
   const uid = req.uid;
-
   const token = await generateJwt(uid);
   const user = await User.findById(uid);
   
